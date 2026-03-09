@@ -81,4 +81,9 @@ create policy "Profissionais deletam conteúdo" on education_content for delete 
 );
 
 -- 7. Storage Bucket (para fotos de lesões / anexos)
--- Crie um bucket chamado 'attachments' no painel Storage do Supabase (torne-o público se necessário ou ajuste as políticas)
+insert into storage.buckets (id, name, public) values ('attachments', 'attachments', true) on conflict (id) do nothing;
+
+create policy "Qualquer pessoa pode visualizar anexos" on storage.objects for select using ( bucket_id = 'attachments' );
+create policy "Usuários autenticados podem fazer upload de anexos" on storage.objects for insert with check ( bucket_id = 'attachments' and auth.role() = 'authenticated' );
+create policy "Usuários podem atualizar seus anexos" on storage.objects for update using ( bucket_id = 'attachments' and auth.uid() = owner );
+create policy "Usuários podem deletar seus anexos" on storage.objects for delete using ( bucket_id = 'attachments' and auth.uid() = owner );
